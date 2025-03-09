@@ -5,6 +5,43 @@ import { generateOTP, verifyOTP, createToken } from '../middleware/auth.js';
 const router = express.Router();
 
 /**
+ * @route   POST /api/auth/register
+ * @desc    Request OTP for login
+ * @access  Public
+ */
+router.post('/register', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ message: 'Email is required' });
+      return;
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      res.status(404).json({ message: 'User already exists' });
+      return;
+    }
+
+    user = await User.create({ email });
+
+    // Generate and send OTP
+    const otp = await generateOTP(email);
+
+    res.status(200).json({
+      message: 'OTP sent successfully',
+      email,
+    });
+  } catch (error) {
+    console.error('Error in requesting OTP:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * @route   POST /api/auth/request-otp
  * @desc    Request OTP for login
  * @access  Public

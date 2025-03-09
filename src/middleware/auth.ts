@@ -28,7 +28,7 @@ export const generateOTP = async (email: string): Promise<string> => {
   const otp = crypto.randomInt(100000, 999999).toString();
   const now = Date.now();
 
-  await OTP.findOneAndUpdate({ email }, { $set: { otp, expiresAt: now } });
+  await OTP.findOneAndUpdate({ email }, { $set: { otp, expiresAt: now } }, { upsert: true });
   // Set OTP expiration time (10 minutes)
   const OTP_EXPIRY_MINUTES = 10;
 
