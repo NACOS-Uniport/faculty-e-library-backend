@@ -102,7 +102,7 @@ export const verifyOTP = async (email: string, otp: string): Promise<boolean> =>
 
 // Create JWT token for a user
 export const createToken = (userData: TokenData): string => {
-  return jwt.sign(userData, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '10d' });
+  return jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '10d' });
 };
 
 // Verify OTP and login route handler
