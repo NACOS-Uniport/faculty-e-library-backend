@@ -14,26 +14,28 @@ router.post('/request-otp', async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
+      res.status(400).json({ message: 'Email is required' });
+      return;
     }
 
     // Check if user exists
     let user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Generate and send OTP
     const otp = await generateOTP(email);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'OTP sent successfully',
       email,
     });
   } catch (error) {
     console.error('Error in requesting OTP:', error);
-    return res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -47,21 +49,24 @@ router.post('/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ message: 'Email and OTP are required' });
+      res.status(400).json({ message: 'Email and OTP are required' });
+      return;
     }
 
     // Verify OTP
     const isValid = verifyOTP(email, otp);
 
     if (!isValid) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+      res.status(400).json({ message: 'Invalid or expired OTP' });
+      return;
     }
 
     // Get user data for response
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Create JWT token using the auth middleware
@@ -70,7 +75,7 @@ router.post('/verify-otp', async (req, res) => {
       email: user.email,
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Login successful',
       token,
       user: {
@@ -80,7 +85,7 @@ router.post('/verify-otp', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in verifying OTP:', error);
-    return res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

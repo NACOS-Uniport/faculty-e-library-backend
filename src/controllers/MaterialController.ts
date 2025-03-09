@@ -8,14 +8,16 @@ import upload from '../middleware/multer.js';
 export const createMaterial = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a PDF file' });
+      res.status(400).json({ message: 'Please upload a PDF file' });
+      return;
     }
 
     const { level, courseCode, courseTitle, description } = req.body;
 
     // Validate required fields
     if (!level || !courseCode || !courseTitle) {
-      return res.status(400).json({ message: 'All fields are required' });
+      res.status(400).json({ message: 'All fields are required' });
+      return;
     }
 
     const pdfUrl = `/uploads/${req.file.filename}`;
@@ -58,7 +60,8 @@ export const getMaterialById = async (req: Request, res: Response) => {
     const material = await Material.findById(req.params.id);
 
     if (!material) {
-      return res.status(404).json({ message: 'Material not found' });
+      res.status(404).json({ message: 'Material not found' });
+      return;
     }
 
     res.status(200).json(material);
@@ -77,7 +80,8 @@ export const updateMaterial = async (req: Request, res: Response) => {
     const material = await Material.findById(req.params.id);
 
     if (!material) {
-      return res.status(404).json({ message: 'Material not found' });
+      res.status(404).json({ message: 'Material not found' });
+      return;
     }
 
     // Update file if provided
@@ -119,7 +123,8 @@ export const deleteMaterial = async (req: Request, res: Response) => {
     const material = await Material.findById(req.params.id);
 
     if (!material) {
-      return res.status(404).json({ message: 'Material not found' });
+      res.status(404).json({ message: 'Material not found' });
+      return;
     }
 
     // Delete the PDF file
@@ -144,7 +149,8 @@ export const toggleApproval = async (req: Request, res: Response) => {
     const material = await Material.findById(req.params.id);
 
     if (!material) {
-      return res.status(404).json({ message: 'Material not found' });
+      res.status(404).json({ message: 'Material not found' });
+      return;
     }
 
     const updatedMaterial = await Material.findByIdAndUpdate(
