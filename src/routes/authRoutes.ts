@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * @route   POST /api/auth/register
- * @desc    Request OTP for login
+ * @desc    User registration
  * @access  Public
  */
 router.post('/register', async (req, res) => {
@@ -22,7 +22,14 @@ router.post('/register', async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
-      res.status(404).json({ message: 'User already exists' });
+      res.status(400).json({ message: 'User already exists', success: false });
+      return;
+    }
+
+    const emailDomain = (email as string).split('@')[1];
+
+    if (emailDomain !== 'uniport.edu.ng') {
+      res.status(400).json({ message: 'Not a valid Uniport Email', success: false });
       return;
     }
 
@@ -59,7 +66,7 @@ router.post('/request-otp', async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(400).json({ message: 'User not found', success: false });
       return;
     }
 
