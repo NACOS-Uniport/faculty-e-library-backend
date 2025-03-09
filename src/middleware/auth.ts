@@ -4,18 +4,10 @@ import User from '../db/models/User.js';
 import OTP from '../db/models/OTP.js';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
 
-// Store OTPs temporarily (in production, consider using Redis)
-interface OtpStore {
-  [email: string]: {
-    otp: string;
-    expiresAt: Date;
-  };
-}
+dotenv.config();
 
-const otpStore: OtpStore = {};
-
-// Generate a random 6-digit OTP
 // Interface for token data
 export interface TokenData {
   id: string;

@@ -98,7 +98,7 @@ router.post('/verify-otp', async (req, res) => {
     }
 
     // Verify OTP
-    const isValid = verifyOTP(email, otp);
+    const isValid = await verifyOTP(email, otp);
 
     if (!isValid) {
       res.status(400).json({ message: 'Invalid or expired OTP' });
