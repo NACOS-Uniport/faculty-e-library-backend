@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import Material from '../db/models/Material.js';
-import path from 'path';
+import path, { dirname } from 'path';
 import fs from 'fs';
 import upload from '../middleware/multer.js';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Create a new material with PDF upload
 export const createMaterial = async (req: Request, res: Response) => {

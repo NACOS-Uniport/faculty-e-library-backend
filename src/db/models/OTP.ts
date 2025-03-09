@@ -9,7 +9,7 @@ interface IOTP extends Document {
 const otpSchema = new Schema<IOTP>({
   email: { type: String, required: true },
   otp: { type: String, required: true },
-  expiresAt: { type: Date, default: Date.now, expires: 3600 },
+  expiresAt: { type: Date, default: Date.now, expires: 600 },
 });
 
 const otpModel = model('OTP', otpSchema);

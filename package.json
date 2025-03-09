@@ -6,12 +6,13 @@
     "build": "tsc",
     "lint": "eslint \"src\"",
     "start": "dotenv -c '.env' -- node dist/app",
-    "dev": "tsx watch"
+    "dev": "tsx watch ./src/app.ts"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.0",
     "@adminjs/mongoose": "^4.1.0",
     "adminjs": "^7.7.2",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-formidable": "^1.2.0",
     "express-session": "^1.17.3",

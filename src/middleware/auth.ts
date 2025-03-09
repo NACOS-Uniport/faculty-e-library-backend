@@ -29,6 +29,8 @@ export const generateOTP = async (email: string): Promise<string> => {
   const now = Date.now();
 
   await OTP.findOneAndUpdate({ email }, { $set: { otp, expiresAt: now } });
+  // Set OTP expiration time (10 minutes)
+  const OTP_EXPIRY_MINUTES = 10;
 
   // Send OTP via email
   const mailOptions = {
@@ -43,9 +45,6 @@ export const generateOTP = async (email: string): Promise<string> => {
 
   return otp;
 };
-
-// Set OTP expiration time (10 minutes)
-const OTP_EXPIRY_MINUTES = 10;
 
 // Configure email transport (should be moved to env variables in production)
 const transporter = nodemailer.createTransport({
@@ -104,6 +103,8 @@ export const verifyOTP = async (email: string, otp: string): Promise<boolean> =>
     return false;
   }
 
+  await otpData.deleteOne();
+
   return true;
 };
 
@@ -150,7 +151,7 @@ export const verifyOTPAndLogin = async (req: Request, res: Response): Promise<vo
       email: user.email,
     });
 
-    // TODO: implement otp deletion
+    await otpData.deleteOne();
 
     res.status(200).json({
       success: true,
