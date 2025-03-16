@@ -4,8 +4,21 @@ import path, { dirname } from 'path';
 import fs from 'fs';
 import upload from '../middleware/multer.js';
 import { fileURLToPath } from 'url';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const s3Client = new S3Client({
+  region: process.env.SCW_REGION || 'fr-par',
+
+  endpoint: process.env.SCW_ENDPOINT || 'https://s3.fr-par.scw.cloud',
+  credentials: {
+    accessKeyId: process.env.SCW_ACCESS_KEY,
+    secretAccessKey: process.env.SCW_SECRET_KEY,
+  },
+});
 
 // Create a new material with PDF upload
 export const createMaterial = async (req: Request, res: Response) => {
@@ -23,13 +36,23 @@ export const createMaterial = async (req: Request, res: Response) => {
       return;
     }
 
-    const pdfUrl = `/uploads/${req.file.filename}`;
+    const url = `${level}/${courseCode}/${req.file.filename}`;
+
+    const params = {
+      Bucket: process.env.SCW_BUCKET_NAME,
+      Key: url, // Unique filename
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
 
     const material = new Material({
       level,
       courseCode,
       courseTitle,
-      pdfUrl,
+      url: `https://foc-library.s3.fr-par.scw.cloud/${url}`,
       description,
       approved: false, // Default to false, admin will approve later
     });
@@ -45,11 +68,12 @@ export const createMaterial = async (req: Request, res: Response) => {
 // Get all materials
 export const getAllMaterials = async (req: Request, res: Response) => {
   try {
+    const level = req.query.level;
+    const courseCode = req.query['course-code'];
     // Filter for only approved materials unless request specifies otherwise
     const approved = req.query.approved === 'false' ? false : true;
-    const query = approved ? { approved: true } : {};
 
-    const materials = await Material.find(query);
+    const materials = await Material.find({ level, courseCode, approved });
     res.status(200).json(materials);
   } catch (error) {
     console.error('Error fetching materials:', error);
@@ -88,17 +112,17 @@ export const updateMaterial = async (req: Request, res: Response) => {
     }
 
     // Update file if provided
-    let pdfUrl = material.pdfUrl;
+    let url = material.url;
     if (req.file) {
       // Remove old file if it exists
-      if (material.pdfUrl) {
-        const oldFilePath = path.join(__dirname, '../../', material.pdfUrl);
+      if (material.url) {
+        const oldFilePath = path.join(__dirname, '../../', material.url);
         if (fs.existsSync(oldFilePath)) {
           fs.unlinkSync(oldFilePath);
         }
       }
 
-      pdfUrl = `/uploads/${req.file.filename}`;
+      url = `/uploads/${req.file.filename}`;
     }
 
     const updatedMaterial = await Material.findByIdAndUpdate(
@@ -107,7 +131,7 @@ export const updateMaterial = async (req: Request, res: Response) => {
         level: level || material.level,
         courseCode: courseCode || material.courseCode,
         courseTitle: courseTitle || material.courseTitle,
-        pdfUrl,
+        url,
         approved: approved !== undefined ? approved : material.approved,
       },
       { new: true }
@@ -131,8 +155,8 @@ export const deleteMaterial = async (req: Request, res: Response) => {
     }
 
     // Delete the PDF file
-    if (material.pdfUrl) {
-      const filePath = path.join(__dirname, '../../', material.pdfUrl);
+    if (material.url) {
+      const filePath = path.join(__dirname, '../../', material.url);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

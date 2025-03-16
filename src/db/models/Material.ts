@@ -4,14 +4,14 @@ export interface IMaterial extends Document {
   level: string;
   courseCode: string;
   courseTitle: string;
-  pdfUrl: string;
+  url: string;
   description: string;
   approved: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const MaterialSchema = new mongoose.Schema(
+const MaterialSchema = new mongoose.Schema<IMaterial>(
   {
     level: {
       type: String,
@@ -25,7 +25,7 @@ const MaterialSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    pdfUrl: {
+    url: {
       type: String,
       required: true,
     },

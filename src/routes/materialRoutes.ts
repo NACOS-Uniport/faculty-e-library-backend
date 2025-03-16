@@ -12,10 +12,10 @@ router.get('/', MaterialController.getAllMaterials);
 router.get('/:id', MaterialController.getMaterialById);
 
 // Create a new material (requires authentication)
-router.post('/', authenticate, upload.single('materialPdf'), MaterialController.createMaterial);
+router.post('/', authenticate, upload.single('material'), MaterialController.createMaterial);
 
 // Update a material (requires authentication)
-router.put('/:id', authenticate, upload.single('materialPdf'), MaterialController.updateMaterial);
+router.put('/:id', authenticate, upload.single('material'), MaterialController.updateMaterial);
 
 // Delete a material (requires authentication)
 router.delete('/:id', authenticate, MaterialController.deleteMaterial);
