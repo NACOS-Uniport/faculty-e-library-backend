@@ -74,11 +74,11 @@ export const createMaterial = async (req: Request, res: Response) => {
 export const getAllMaterials = async (req: Request, res: Response) => {
   try {
     const level = req.query.level;
-    const courseCode = req.query['course-code'];
+    const courseCode = req.query['course-code'] as string;
     // Filter for only approved materials unless request specifies otherwise
     const approved = req.query.approved === 'false' ? false : true;
 
-    const materials = await Material.find({ level: Number(level), courseCode, approved });
+    const materials = await Material.find({ level: Number(level), courseCode: courseCode.toUpperCase(), approved });
     res.status(200).json(materials);
   } catch (error) {
     console.error('Error fetching materials:', error);
