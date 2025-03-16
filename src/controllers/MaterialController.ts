@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import Material from '../db/models/Material.js';
 import path, { dirname } from 'path';
 import fs from 'fs';
-import upload from '../middleware/multer.js';
 import { fileURLToPath } from 'url';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
+import { Upload } from '@aws-sdk/lib-storage';
+import { Readable } from 'stream';
 
 dotenv.config();
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -36,17 +37,20 @@ export const createMaterial = async (req: Request, res: Response) => {
       return;
     }
 
-    const url = `${level}/${courseCode}/${req.file.filename}`;
+    const url = `${level}/${courseCode}/${Date.now()}_${req.file.originalname}`;
+    const bufferStream = new Readable();
+    bufferStream.push(req.file.buffer);
+    bufferStream.push(null);
 
     const params = {
       Bucket: process.env.SCW_BUCKET_NAME,
       Key: url, // Unique filename
-      Body: req.file.buffer,
+      Body: bufferStream,
       ContentType: req.file.mimetype,
     };
 
-    const command = new PutObjectCommand(params);
-    await s3Client.send(command);
+    const upload = new Upload({ params, client: s3Client });
+    await upload.done();
 
     const material = new Material({
       level,
@@ -58,6 +62,7 @@ export const createMaterial = async (req: Request, res: Response) => {
     });
 
     const savedMaterial = await material.save();
+
     res.status(201).json(savedMaterial);
   } catch (error) {
     console.error('Error creating material:', error);
