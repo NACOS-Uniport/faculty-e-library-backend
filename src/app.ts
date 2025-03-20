@@ -6,6 +6,7 @@ import provider from './admin/auth-provider.js';
 import options from './admin/options.js';
 import initializeDb from './db/index.js';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ const start = async () => {
       resave: true,
     }
   );
+  app.use(cors());
 
   app.use(admin.options.rootPath, router);
   app.use('/api/v1/', routes);
