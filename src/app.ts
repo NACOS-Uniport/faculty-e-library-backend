@@ -7,6 +7,7 @@ import options from './admin/options.js';
 import initializeDb from './db/index.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { setupSwagger } from './swagger.js';
 
 dotenv.config();
 
@@ -43,11 +44,15 @@ const start = async () => {
   );
   app.use(cors());
 
+  // Setup Swagger documentation
+  setupSwagger(app);
+
   app.use(admin.options.rootPath, router);
   app.use('/api/v1/', routes);
 
   app.listen(port, () => {
     console.log(`AdminJS available at http://localhost:${port}${admin.options.rootPath}`);
+    console.log(`API documentation available at http://localhost:${port}/api-docs`);
   });
 };
 

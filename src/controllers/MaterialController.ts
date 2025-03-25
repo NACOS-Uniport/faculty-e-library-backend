@@ -21,7 +21,56 @@ const s3Client = new S3Client({
   },
 });
 
-// Create a new material with PDF upload
+/**
+ * @swagger
+ * /api/v1/materials:
+ *   post:
+ *     summary: Create a new material
+ *     description: Upload a new material with PDF file
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - level
+ *               - courseCode
+ *               - courseTitle
+ *               - description
+ *               - material
+ *             properties:
+ *               level:
+ *                 type: string
+ *                 description: Study level
+ *               courseCode:
+ *                 type: string
+ *                 description: Course code
+ *               courseTitle:
+ *                 type: string
+ *                 description: Course title
+ *               description:
+ *                 type: string
+ *                 description: Material description
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *                 description: PDF file to upload
+ *     responses:
+ *       201:
+ *         description: Material created successfully
+ *       400:
+ *         description: Invalid input or missing file
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export const createMaterial = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -70,7 +119,41 @@ export const createMaterial = async (req: Request, res: Response) => {
   }
 };
 
-// Get all materials
+/**
+ * @swagger
+ * /api/v1/materials:
+ *   get:
+ *     summary: Get all materials
+ *     description: Retrieve a list of materials with optional filtering
+ *     tags: [Materials]
+ *     parameters:
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: integer
+ *         description: Filter by level
+ *       - in: query
+ *         name: course-code
+ *         schema:
+ *           type: string
+ *         description: Filter by course code
+ *       - in: query
+ *         name: approved
+ *         schema:
+ *           type: boolean
+ *         description: Filter by approval status (default is true)
+ *     responses:
+ *       200:
+ *         description: List of materials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Material'
+ *       500:
+ *         description: Server error
+ */
 export const getAllMaterials = async (req: Request, res: Response) => {
   try {
     const level = req.query.level;
@@ -78,7 +161,18 @@ export const getAllMaterials = async (req: Request, res: Response) => {
     // Filter for only approved materials unless request specifies otherwise
     const approved = req.query.approved === 'false' ? false : true;
 
-    const materials = await Material.find({ level: Number(level), courseCode: courseCode.toUpperCase(), approved });
+    // Build query object conditionally
+    let query: any = { approved };
+
+    if (level) {
+      query.level = Number(level);
+    }
+
+    if (courseCode) {
+      query.courseCode = { $regex: new RegExp(courseCode, 'i') };
+    }
+
+    const materials = await Material.find(query);
     res.status(200).json(materials);
   } catch (error) {
     console.error('Error fetching materials:', error);
@@ -86,7 +180,32 @@ export const getAllMaterials = async (req: Request, res: Response) => {
   }
 };
 
-// Get a single material by ID
+/**
+ * @swagger
+ * /api/v1/materials/{id}:
+ *   get:
+ *     summary: Get material by ID
+ *     description: Retrieve a specific material by its ID
+ *     tags: [Materials]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: Material details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Material'
+ *       404:
+ *         description: Material not found
+ *       500:
+ *         description: Server error
+ */
 export const getMaterialById = async (req: Request, res: Response) => {
   try {
     const material = await Material.findById(req.params.id);
@@ -103,7 +222,49 @@ export const getMaterialById = async (req: Request, res: Response) => {
   }
 };
 
-// Update a material
+/**
+ * @swagger
+ * /api/v1/materials/{id}:
+ *   put:
+ *     summary: Update material
+ *     description: Update an existing material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Material ID
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               level:
+ *                 type: string
+ *               courseCode:
+ *                 type: string
+ *               courseTitle:
+ *                 type: string
+ *               approved:
+ *                 type: boolean
+ *               material:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Updated material
+ *       404:
+ *         description: Material not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export const updateMaterial = async (req: Request, res: Response) => {
   try {
     const { level, courseCode, courseTitle, approved } = req.body;
@@ -149,7 +310,32 @@ export const updateMaterial = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a material
+/**
+ * @swagger
+ * /api/v1/materials/{id}:
+ *   delete:
+ *     summary: Delete material
+ *     description: Delete a material by ID
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: Material deleted successfully
+ *       404:
+ *         description: Material not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export const deleteMaterial = async (req: Request, res: Response) => {
   try {
     const material = await Material.findById(req.params.id);
@@ -175,7 +361,32 @@ export const deleteMaterial = async (req: Request, res: Response) => {
   }
 };
 
-// Toggle approval status
+/**
+ * @swagger
+ * /api/v1/materials/{id}/approve:
+ *   patch:
+ *     summary: Toggle approval status
+ *     description: Toggle the approval status of a material
+ *     tags: [Materials]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Material ID
+ *     responses:
+ *       200:
+ *         description: Material approval status updated
+ *       404:
+ *         description: Material not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export const toggleApproval = async (req: Request, res: Response) => {
   try {
     const material = await Material.findById(req.params.id);
