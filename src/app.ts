@@ -15,8 +15,6 @@ const port = process.env.PORT || 3000;
 
 const start = async () => {
   const app = express();
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
 
   await initializeDb();
 
@@ -48,6 +46,8 @@ const start = async () => {
   setupSwagger(app);
 
   app.use(admin.options.rootPath, router);
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
   app.use('/api/v1/', routes);
 
   app.listen(port, () => {
