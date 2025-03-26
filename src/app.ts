@@ -16,6 +16,9 @@ const port = process.env.PORT || 3000;
 const start = async () => {
   const app = express();
 
+  // Apply CORS middleware first, before any routes
+  app.use(cors());
+
   await initializeDb();
 
   const admin = new AdminJS(options);
@@ -40,7 +43,6 @@ const start = async () => {
       resave: true,
     }
   );
-  app.use(cors());
 
   // Setup Swagger documentation
   setupSwagger(app);
