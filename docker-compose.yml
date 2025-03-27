@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/faculty-platform
+      - JWT_SECRET=your-jwt-secret
+      - COOKIE_SECRET=your-cookie-secret
+      - SCW_REGION=fr-par
+      - SCW_ENDPOINT=https://s3.fr-par.scw.cloud
+      - SCW_ACCESS_KEY=your-access-key
+      - SCW_SECRET_KEY=your-secret-key
+      - SCW_BUCKET_NAME=foc-library
+      - EMAIL_USER=your-email@example.com
+      - EMAIL_PASSWORD=your-email-password
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    volumes:
+      - uploads:/usr/src/app/uploads
+
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongo-data:
+  uploads:
