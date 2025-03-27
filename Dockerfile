@@ -4,17 +4,20 @@ FROM node:18-alpine
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install Yarn
+RUN npm install -g yarn
 
-# Install dependencies
-RUN npm ci
+# Copy package.json and yarn.lock (if it exists)
+COPY package*.json yarn*.lock* ./
+
+# Install dependencies using Yarn
+RUN yarn install --frozen-lockfile
 
 # Copy the rest of the application
 COPY . .
 
 # Build the TypeScript project
-RUN npm run build
+RUN yarn build
 
 # Create uploads directory with proper permissions
 RUN mkdir -p uploads && chmod 777 uploads
