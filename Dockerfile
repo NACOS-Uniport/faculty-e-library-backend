@@ -5,7 +5,7 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # Install Yarn
-RUN npm install -g yarn
+# RUN npm install -g yarn
 
 # Copy package.json and yarn.lock (if it exists)
 COPY package*.json yarn*.lock* ./
